@@ -38,12 +38,9 @@ check_certs() {
       issuer=$(echo $data | grep -Eo "CN=(.*)"| cut -d "=" -f 2)
       expiry_epoch=$(date -d "$expiry_date" +%s)
       expiry_days="$(( ($expiry_epoch - $now_epoch) / (3600 * 24) ))"
-      if [ $expiry_days -lt 100 ]
+      if [ $expiry_days -lt 11 ]
       then
           color="#ff0000"
-          notify "$name" "$expiry_days" "$expiry_date" "$issuer" "$color"
-      else
-          color="#2eb886"
           notify "$name" "$expiry_days" "$expiry_date" "$issuer" "$color"
       fi
     fi
