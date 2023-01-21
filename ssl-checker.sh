@@ -3,11 +3,20 @@
 # @HoangDH - Jun 29 2019
 # set -ex
 
+ENV_FILE="/etc/ssl-expiry-checker-slack.env"
+
+get_env_value() {
+    local k=$1
+    echo $(awk -F= -v key="$k" '$1==key { print $2 }' $ENV_FILE)
+}
+
+WEBHOOK=$(get_env_value "WEBHOOK")
+SLACK_CHANNEL=$(get_env_value "SLACK_CHANNEL")
+NOTIFICATION_DAYS=$(get_env_value "NOTIFICATION_DAYS")
+SLACK_BOTNAME="SSL Checker"
+
 notify() {
-  WEBHOOK="https://hooks.slack.com/services/XXXXXXX/XXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXX"
-  SLACK_CHANNEL="#ssl-monitor"
-  SLACK_BOTNAME="SSL Checker"
-  
+
   DOMAIN="$1"
   EXPIRY_DAYS="$2"
   EXPIRY_DATE="$3"
@@ -38,7 +47,7 @@ check_certs() {
       issuer=$(echo $data | grep -Eo "CN=(.*)"| cut -d "=" -f 2)
       expiry_epoch=$(date -d "$expiry_date" +%s)
       expiry_days="$(( ($expiry_epoch - $now_epoch) / (3600 * 24) ))"
-      if [ $expiry_days -lt 11 ]
+      if [[ $expiry_days -lt $NOTIFICATION_DAYS ]];
       then
           color="#ff0000"
           notify "$name" "$expiry_days" "$expiry_date" "$issuer" "$color"
